@@ -33,11 +33,12 @@ before-all = [
     "/tmp/vcpkg/bootstrap-vcpkg.sh -disableMetrics",
     "ARCH=$(uname -m | sed 's/x86_64/x64/' | sed 's/aarch64/arm64/') && /tmp/vcpkg/vcpkg install --triplet ${ARCH}-linux --x-manifest-root {project} --x-install-root {project}/vcpkg_installed && ln -sfn ${ARCH}-linux {project}/vcpkg_installed/current",
 ]
-environment = { VCPKG_INSTALL_PATH = "{project}/vcpkg_installed/current" }
 
 [tool.cibuildwheel.macos]
 before-all = [
-    "brew install libogg libvorbis opus opusfile pkg-config",
+    "git clone --depth 1 https://github.com/microsoft/vcpkg.git /tmp/vcpkg",
+    "/tmp/vcpkg/bootstrap-vcpkg.sh -disableMetrics",
+    "ARCH=$(uname -m | sed 's/x86_64/x64/' | sed 's/arm64/arm64/') && /tmp/vcpkg/vcpkg install --triplet ${ARCH}-osx --x-manifest-root {project} --x-install-root {project}/vcpkg_installed && ln -sfn ${ARCH}-osx {project}/vcpkg_installed/current",
 ]
 
 [tool.cibuildwheel.windows]
@@ -46,4 +47,3 @@ before-all = [
     "C:\\vcpkg\\bootstrap-vcpkg.bat -disableMetrics",
     "C:\\vcpkg\\vcpkg install --triplet x64-windows-static-md --x-manifest-root {project} --x-install-root {project}\\vcpkg_installed",
 ]
-environment = { VCPKG_INSTALL_PATH = "{project}\\vcpkg_installed\\x64-windows-static-md" }
