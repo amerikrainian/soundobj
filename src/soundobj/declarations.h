@@ -16,9 +16,7 @@ typedef unsigned long long  ma_uint64;
 typedef ma_uint64		   ma_uintptr;
 typedef ma_uint8	ma_bool8;
 typedef ma_uint32   ma_bool32;
-typedef unsigned short wchar_t;
-typedef ma_uint64 size_t;
-typedef wchar_t     ma_wchar_win32;
+typedef ma_uint16   ma_wchar_win32;
 
 #define MA_TRUE	 1
 #define MA_FALSE	0

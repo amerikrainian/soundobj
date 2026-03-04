@@ -11,7 +11,7 @@ The short version is that I couldn't find one that did what I wanted.
 As of mid-2025, you either get a specialized set of features (playsound), a bloated installation that does way more than sound (pyglet/pygame/etc), licensing restrictions (bass/sound_lib), EOL/lack of support (Libaudioverse/Synthizer), data sciency stuff, or low-level interfaces (PyAudio/PyMiniaudio).
 
 To be clear, I'm not knocking any of these libraries. I have used all of them once or twice, and have code in both pybass and sound_lib.
-At the time of writing, they are admitedly far more battle tested. In fact, I am likely to use them again and encourage you to do the same if they better serve your use case.
+At the time of writing, they are admittedly far more battle tested. In fact, I am likely to use them again and encourage you to do the same if they better serve your use case.
 
 That said, I wanted something portable, permissive, and that just works with an API that is familiar or that someone could pick up and immediately start hacking on.
 
@@ -30,28 +30,33 @@ That said, I wanted something portable, permissive, and that just works with an 
 
 ### Prerequisites
 
-- Python 3.11+ (probably works on lower versions as well, this just hasn't been tested)
-- cffi library
-- miniaudio library (included in `lib/` directory)
-- vcpkg (included as submodule in vcpkg/ directory)
+- Python 3.10+
+- [`uv`](https://docs.astral.sh/uv/)
+- C compiler toolchain for your platform
+
+Codec libraries are resolved in this order at build time:
+1. `VCPKG_INSTALL_PATH` (explicit path)
+2. `pkg-config` (`opus`, `opusfile`, `ogg`, `vorbis`, `vorbisfile`)
+3. Auto-managed `vcpkg` cache in `~/.cache/soundobj-vcpkg` (or `%LOCALAPPDATA%\\soundobj-vcpkg` on Windows)
 
 ### Build Instructions
 
-1. Clone the repository with submodules:
+1. Clone the repository:
 ```bash
-git clone --recursive https://github.com/cartertemm/soundobj.git
+git clone https://github.com/cartertemm/soundobj.git
 cd soundobj
 ```
 
-2. Install Python dependencies:
+2. Build source + wheel with `uv`:
 ```bash
-pip install cffi
+uv build
 ```
 
-3. Build the FFI wrapper (will automatically handle VCPKG):
-```bash
-python build_ffi.py
-```
+### Optional environment variables
+
+- `VCPKG_INSTALL_PATH`: Use a pre-installed vcpkg prefix (`include/` + `lib/`)
+- `SOUNDOBJ_AUTO_INSTALL_VCPKG=0`: Disable automatic vcpkg bootstrap/install
+- `SOUNDOBJ_VCPKG_INSTALL_ROOT=/path/to/root`: Override cache install root (triplet dir is appended)
 
 ## Roadmap
 

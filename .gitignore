@@ -171,3 +171,9 @@ pyrightconfig.json
 
 # Soundobj VCPKG install
 vcpkg_installed/
+
+# CFFI generated
+_c_miniaudio.c
+*.pyd
+*.dll
+wheelhouse/

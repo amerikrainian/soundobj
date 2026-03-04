@@ -1,0 +1,3 @@
+include vcpkg.json
+recursive-include src/soundobj/lib *.h *.c
+include src/soundobj/declarations.h

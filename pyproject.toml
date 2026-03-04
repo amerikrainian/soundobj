@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=74", "cffi>=1.17.1"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "soundobj"
 version = "0.1.0"
@@ -6,7 +10,40 @@ readme = "README.md"
 authors = [
     { name = "Carter Temm", email = "cartertemm@gmail.com" }
 ]
-requires-python = ">=3.13"
+requires-python = ">=3.10"
 dependencies = ["cffi>=1.17.1"]
-[tool.setuptools]
-py-modules=["soundobj"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+soundobj = ["declarations.h", "lib/*.h", "lib/*.c"]
+
+[tool.cibuildwheel]
+build = "cp310-* cp311-* cp312-* cp313-* cp314-* cp315-* cp316-*"
+enable = ["cpython-prerelease"]
+build-frontend = "build[uv]"
+skip = "*-musllinux_*"
+test-command = "python -c \"import soundobj\""
+
+[tool.cibuildwheel.linux]
+before-all = [
+    "yum install -y git curl zip unzip tar pkg-config perl-IPC-Cmd || apt-get update && apt-get install -y git curl zip unzip tar pkg-config",
+    "git clone --depth 1 https://github.com/microsoft/vcpkg.git /tmp/vcpkg",
+    "/tmp/vcpkg/bootstrap-vcpkg.sh -disableMetrics",
+    "ARCH=$(uname -m | sed 's/x86_64/x64/' | sed 's/aarch64/arm64/') && /tmp/vcpkg/vcpkg install --triplet ${ARCH}-linux --x-manifest-root {project} --x-install-root {project}/vcpkg_installed && ln -sfn ${ARCH}-linux {project}/vcpkg_installed/current",
+]
+environment = { VCPKG_INSTALL_PATH = "{project}/vcpkg_installed/current" }
+
+[tool.cibuildwheel.macos]
+before-all = [
+    "brew install libogg libvorbis opus opusfile pkg-config",
+]
+
+[tool.cibuildwheel.windows]
+before-all = [
+    "git clone --depth 1 https://github.com/microsoft/vcpkg.git C:\\vcpkg",
+    "C:\\vcpkg\\bootstrap-vcpkg.bat -disableMetrics",
+    "C:\\vcpkg\\vcpkg install --triplet x64-windows-static-md --x-manifest-root {project} --x-install-root {project}\\vcpkg_installed",
+]
+environment = { VCPKG_INSTALL_PATH = "{project}\\vcpkg_installed\\x64-windows-static-md" }
