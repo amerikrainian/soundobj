@@ -1,15 +1,12 @@
-name: Build wheels
+name: Publish to PyPI
 
 on:
-  push:
-    branches: [main]
-    tags: ["v*"]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
+  release:
+    types: [published]
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: pypi-${{ github.event.release.tag_name || github.sha }}
   cancel-in-progress: true
 
 permissions:
@@ -17,29 +14,31 @@ permissions:
 
 jobs:
   build_wheels:
-    name: Build wheels (${{ matrix.os }})
+    name: Build wheels for ${{ matrix.os }}
     runs-on: ${{ matrix.runs-on }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: linux-x86_64
+          - os: linux-intel
             runs-on: ubuntu-latest
             archs: x86_64
-          - os: linux-aarch64
+          - os: linux-arm
             runs-on: ubuntu-24.04-arm
             archs: aarch64
-          - os: macos-x86_64
-            runs-on: macos-15
-            archs: x86_64
-          - os: macos-arm64
-            runs-on: macos-15-arm64
-            archs: arm64
-          - os: windows-x86_64
+          - os: windows-intel
             runs-on: windows-latest
             archs: AMD64
+          - os: macos-intel
+            runs-on: macos-15
+            archs: x86_64
+          - os: macos-arm
+            runs-on: macos-15-arm64
+            archs: arm64
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.release.tag_name || github.ref_name }}
 
       - name: Activate MSVC
         uses: ilammy/msvc-dev-cmd@v1
@@ -48,19 +47,22 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v3.3.1
         env:
-          CIBW_ARCHS: ${{ matrix.archs }}
+          CIBW_PLATFORM: ${{ matrix.platform || 'auto' }}
+          CIBW_ARCHS: ${{ matrix.archs || 'auto' }}
           CIBW_PRERELEASE_PYTHONS: "1"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wheels-${{ matrix.os }}
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
 
   build_sdist:
     name: Build source distribution
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.release.tag_name || github.ref_name }}
 
       - uses: actions/setup-python@v5
         with:
@@ -73,26 +75,29 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: sdist
+          name: cibw-sdist
           path: dist/*.tar.gz
 
-  # upload_pypi:
-  #   needs: [build_wheels, build_sdist]
-  #   if: startsWith(github.ref, 'refs/tags/v')
-  #   runs-on: ubuntu-latest
-  #   environment:
-  #     name: pypi
-  #     url: https://pypi.org/p/soundobj
-  #   permissions:
-  #     id-token: write
-  #   steps:
-  #     - uses: actions/download-artifact@v4
-  #       with:
-  #         pattern: wheels-*
-  #         path: dist
-  #         merge-multiple: true
-  #     - uses: actions/download-artifact@v4
-  #       with:
-  #         name: sdist
-  #         path: dist
-  #     - uses: pypa/gh-action-pypi-publish@release/v1
+  upload_pypi:
+    name: Publish to PyPI
+    needs: [build_wheels, build_sdist]
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/soundobj
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cibw-wheels-*
+          path: dist
+          merge-multiple: true
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: cibw-sdist
+          path: dist
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
