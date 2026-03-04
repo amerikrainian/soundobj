@@ -30,10 +30,10 @@ jobs:
             runs-on: ubuntu-24.04-arm
             archs: aarch64
           - os: macos-x86_64
-            runs-on: macos-13
+            runs-on: macos-15
             archs: x86_64
           - os: macos-arm64
-            runs-on: macos-latest
+            runs-on: macos-15-arm64
             archs: arm64
           - os: windows-x86_64
             runs-on: windows-latest

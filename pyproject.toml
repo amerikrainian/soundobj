@@ -20,7 +20,7 @@ where = ["src"]
 soundobj = ["declarations.h", "lib/*.h", "lib/*.c"]
 
 [tool.cibuildwheel]
-build = "cp310-* cp311-* cp312-* cp313-* cp314-* cp315-* cp316-*"
+build = "cp310-* cp311-* cp312-* cp313-* cp314-* cp315*-* cp316*-*"
 enable = ["cpython-prerelease"]
 build-frontend = "build[uv]"
 skip = "*-musllinux_*"
