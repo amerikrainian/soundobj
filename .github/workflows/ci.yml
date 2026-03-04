@@ -1,4 +1,4 @@
-name: Publish to PyPI
+name: BuildWheels
 
 on:
   workflow_dispatch:
@@ -78,26 +78,3 @@ jobs:
           name: cibw-sdist
           path: dist/*.tar.gz
 
-  upload_pypi:
-    name: Publish to PyPI
-    needs: [build_wheels, build_sdist]
-    if: github.event_name == 'release'
-    runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/p/soundobj
-    permissions:
-      id-token: write
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: cibw-wheels-*
-          path: dist
-          merge-multiple: true
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: cibw-sdist
-          path: dist
-
-      - uses: pypa/gh-action-pypi-publish@release/v1
