@@ -22,13 +22,13 @@ soundobj = ["declarations.h", "lib/*.h", "lib/*.c"]
 [tool.cibuildwheel]
 build = "cp3??-*"
 enable = ["cpython-prerelease"]
-build-frontend = "build[uv]"
+build-frontend = "build"
 skip = "*-musllinux_*"
 test-command = "python -c \"import soundobj\""
 
 [tool.cibuildwheel.linux]
 before-all = [
-    "yum install -y git curl zip unzip tar pkg-config perl-IPC-Cmd || apt-get update && apt-get install -y git curl zip unzip tar pkg-config",
+    "if command -v yum >/dev/null 2>&1; then yum install -y git curl zip unzip tar pkg-config perl-IPC-Cmd; elif command -v dnf >/dev/null 2>&1; then dnf install -y git curl zip unzip tar pkg-config perl-IPC-Cmd; elif command -v apt-get >/dev/null 2>&1; then apt-get update && apt-get install -y git curl zip unzip tar pkg-config; else echo 'No supported package manager found' >&2; exit 1; fi",
     "git clone --depth 1 https://github.com/microsoft/vcpkg.git /tmp/vcpkg",
     "/tmp/vcpkg/bootstrap-vcpkg.sh -disableMetrics",
     "ARCH=$(uname -m | sed 's/x86_64/x64/' | sed 's/aarch64/arm64/') && /tmp/vcpkg/vcpkg install --triplet ${ARCH}-linux --x-manifest-root {project} --x-install-root {project}/vcpkg_installed && ln -sfn ${ARCH}-linux {project}/vcpkg_installed/current",
@@ -42,7 +42,7 @@ before-all = [
 
 [tool.cibuildwheel.windows]
 before-all = [
-    "git clone --depth 1 https://github.com/microsoft/vcpkg.git C:\\vcpkg",
+    "if not exist C:\\vcpkg\\.git git clone --depth 1 https://github.com/microsoft/vcpkg.git C:\\vcpkg",
     "C:\\vcpkg\\bootstrap-vcpkg.bat -disableMetrics",
     "C:\\vcpkg\\vcpkg install --triplet x64-windows-static-md --x-manifest-root {project} --x-install-root {project}\\vcpkg_installed",
 ]
